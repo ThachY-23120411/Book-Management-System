@@ -16,9 +16,13 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
 
 // --- 1. CẤU HÌNH DB ---
+// Use DATABASE_URL from environment (Render) or fallback to appsettings.json
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<DataContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseNpgsql(connectionString);
 });
 
 // --- 2. CẤU HÌNH CORS ---
@@ -27,9 +31,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReactApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173", 
+            policy.WithOrigins("http://localhost:5173",
                                "https://bookstore-management-group10.vercel.app",
-                               "https://bookstore-management-group10-n6lt.vercel.app") // Update Vercel domains
+                               "https://bookstore-management-group10-n6lt.vercel.app",
+                               "https://client-eta-opal-70.vercel.app") // Your Vercel domain
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
