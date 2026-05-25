@@ -32,7 +32,7 @@ string GetConnectionString()
     var port = uri.Port;
     var database = uri.LocalPath.TrimStart('/');
 
-    return $"Host={host};Username={username};Password={password};Database={database};Port={port}";
+    return $"Host={host};Username={username};Password={password};Database={database};Port={port};IP Address Preference=IPv4Only";
 }
 
 var connectionString = GetConnectionString();
