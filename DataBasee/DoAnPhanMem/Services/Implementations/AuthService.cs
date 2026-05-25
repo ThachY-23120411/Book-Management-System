@@ -39,13 +39,13 @@ namespace DoAnPhanMem.Services.Implementations
             if (taiKhoan == null)
                 throw new Exception("Sai tài khoản");
 
-            // 2. Kiểm tra mật khẩu
-            if (!BCrypt.Net.BCrypt.Verify(password, taiKhoan.MatKhau))
+            // 2. Kiểm tra mật khẩu (hỗ trợ cả plain text và bcrypt hash)
+            if (!VerifyPassword(password, taiKhoan.MatKhau))
                 throw new Exception("Sai mật khẩu");
 
             // 3. Kiểm tra xem có phải là mật khẩu mặc định ("1") không?
             // Để Frontend biết mà bắt đổi mật khẩu
-            bool isFirstLogin = BCrypt.Net.BCrypt.Verify(DEFAULT_PASSWORD, taiKhoan.MatKhau);
+            bool isFirstLogin = VerifyPassword(DEFAULT_PASSWORD, taiKhoan.MatKhau);
 
             // 4. Lấy thông tin nhân viên
             var nhanVien = taiKhoan.NhanVien;
@@ -74,8 +74,8 @@ namespace DoAnPhanMem.Services.Implementations
             if (taiKhoan == null)
                 throw new Exception("Không tìm thấy tài khoản");
 
-            // // Kiểm tra mật khẩu cũ
-            if (!BCrypt.Net.BCrypt.Verify(oldPassword, taiKhoan.MatKhau))
+            // Kiểm tra mật khẩu cũ (hỗ trợ cả plain text và bcrypt)
+            if (!VerifyPassword(oldPassword, taiKhoan.MatKhau))
                 throw new Exception("Mật khẩu cũ không đúng");
 
             // Mã hóa và cập nhật mật khẩu mới
@@ -84,6 +84,21 @@ namespace DoAnPhanMem.Services.Implementations
             await _context.SaveChangesAsync();
 
             return true;
+        }
+
+        /// <summary>
+        /// Verify password supporting both bcrypt hashes and plain text (legacy data).
+        /// </summary>
+        private bool VerifyPassword(string plainPassword, string storedPassword)
+        {
+            // Nếu stored password là bcrypt hash (bắt đầu bằng $2a$ hoặc $2b$)
+            if (storedPassword.StartsWith("$2a$") || storedPassword.StartsWith("$2b$"))
+            {
+                return BCrypt.Net.BCrypt.Verify(plainPassword, storedPassword);
+            }
+
+            // Nếu là plain text (legacy data từ sample_data.sql)
+            return plainPassword == storedPassword;
         }
 
         private string GenerateJwt(TAI_KHOAN taiKhoan, NHAN_VIEN nhanVien)
