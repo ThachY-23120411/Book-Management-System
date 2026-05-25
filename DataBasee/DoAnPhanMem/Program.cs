@@ -71,6 +71,10 @@ builder.Services.AddControllers()
     });
 
 // --- 4. CẤU HÌNH JWT ---
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (jwtKey == null || Encoding.UTF8.GetBytes(jwtKey).Length < 32)
+    throw new InvalidOperationException("Jwt:Key must be at least 32 characters (256 bits) for HS256.");
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -83,7 +87,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+                Encoding.UTF8.GetBytes(jwtKey!))
         };
     });
 
