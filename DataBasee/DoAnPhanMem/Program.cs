@@ -16,9 +16,14 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
 
 // --- 1. CẤU HÌNH DB ---
-// Parse DATABASE_URL (Supabase URI format) to Npgsql keyword format
 string GetConnectionString()
 {
+    // Ưu tiên connection string trực tiếp (keyword format) từ Render Environment
+    var directConnection = Environment.GetEnvironmentVariable("DIRECT_CONNECTION_STRING");
+    if (!string.IsNullOrWhiteSpace(directConnection))
+        return directConnection;
+
+    // Fallback: parse DATABASE_URL (Supabase URI format)
     var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
     if (string.IsNullOrWhiteSpace(databaseUrl))
         return builder.Configuration.GetConnectionString("DefaultConnection");
@@ -32,7 +37,7 @@ string GetConnectionString()
     var port = uri.Port;
     var database = uri.LocalPath.TrimStart('/');
 
-    return $"Host={host};Username={username};Password={password};Database={database};Port={port};IP Address Preference=IPv4Only";
+    return $"Host={host};Username={username};Password={password};Database={database};Port={port}";
 }
 
 var connectionString = GetConnectionString();
