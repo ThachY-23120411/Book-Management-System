@@ -16,9 +16,26 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
 
 // --- 1. CẤU HÌNH DB ---
-// Use DATABASE_URL from environment (Render) or fallback to appsettings.json
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
-    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+// Parse DATABASE_URL (Supabase URI format) to Npgsql keyword format
+string GetConnectionString()
+{
+    var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+    if (string.IsNullOrWhiteSpace(databaseUrl))
+        return builder.Configuration.GetConnectionString("DefaultConnection");
+
+    // URI format: postgresql://username:password@host:port/database
+    var uri = new Uri(databaseUrl);
+    var userInfo = uri.UserInfo.Split(':');
+    var username = Uri.UnescapeDataString(userInfo[0]);
+    var password = Uri.UnescapeDataString(userInfo[1]);
+    var host = uri.Host;
+    var port = uri.Port;
+    var database = uri.LocalPath.TrimStart('/');
+
+    return $"Host={host};Username={username};Password={password};Database={database};Port={port}";
+}
+
+var connectionString = GetConnectionString();
 
 builder.Services.AddDbContext<DataContext>(options =>
 {
