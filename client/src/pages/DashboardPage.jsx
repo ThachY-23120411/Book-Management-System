@@ -23,17 +23,22 @@ function DashboardPage() {
         const fetchProfile = async () => {
             try {
                 setLoading(true);
+                setError("");
                 const data = await profileService.getProfile();
+                console.log("Profile data:", data);
                 setProfile(data);
                 setFormData({
                     SoDienThoai: data.SoDienThoai || "",
                     DiaChi: data.DiaChi || "",
                     Email: data.Email || "",
                 });
-                setError("");
             } catch (err) {
-                setError("Không thể tải thông tin nhân viên");
-                console.error(err);
+                console.error("Profile fetch error:", err);
+                const message = err.response?.data?.message
+                    || err.response?.status === 401 ? "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại"
+                    : err.response?.status === 500 ? "Lỗi server, vui lòng thử lại sau"
+                    : "Không thể tải thông tin nhân viên";
+                setError(message);
             } finally {
                 setLoading(false);
             }

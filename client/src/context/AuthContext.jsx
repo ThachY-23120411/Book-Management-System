@@ -20,12 +20,14 @@ export const AuthProvider = ({ children }) => {
     const login = async (username, password) => {
         try {
             const data = await loginService(username, password);
-            const { Token, Role, IsFirstLogin } = data;
+            const { Token, Role, IsFirstLogin, FullName, MaNV } = data;
             const userData = {
                 username,
+                name: FullName,
                 role: Role,
                 token: Token,
-                isFirstLogin: IsFirstLogin
+                isFirstLogin: IsFirstLogin,
+                maNV: MaNV
             };
             setUser(userData);
             localStorage.setItem('user', JSON.stringify(userData));
