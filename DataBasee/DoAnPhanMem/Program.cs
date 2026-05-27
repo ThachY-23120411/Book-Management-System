@@ -53,10 +53,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReactApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173",
-                               "https://bookstore-management-group10.vercel.app",
-                               "https://bookstore-management-group10-n6lt.vercel.app",
-                               "https://client-eta-opal-70.vercel.app") // Your Vercel domain
+            policy.AllowAnyOrigin()
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
